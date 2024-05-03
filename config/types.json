@@ -2,20 +2,8 @@
     "webapp": {
         "name": "tribe",
         "slug": "webapp",
-        "description": "An open source, collaborative project management framework.",
-        "api_url": "https://tribe.tribe-framework.org",
-        "interface_urls": {
-            "home": { 
-                "title": "Home", 
-                "slug": "home", 
-                "url": "https://tribe-framework.org"
-            },
-            "junction": { 
-                "title": "Junction", 
-                "slug": "junction", 
-                "url": "https://junction.tribe-framework.org"
-            }
-        },
+        "description": "Tribe is an open source, collaborative project management framework.",
+        "api_url": "https://tribe-framework.org",
         "format": "types.json",
         "version": "1.0",
         "searchable_types": ["section", "page"],
@@ -72,16 +60,6 @@
                 "list_field": true,
                 "list_searchable": true,
                 "list_sortable": true
-            },
-            {
-                "input_slug": "password",
-                "input_placeholder": "Enter password",
-                "input_type": "text",
-                "var_type": "string",
-                "input_unique": false,
-                "list_field": false,
-                "list_searchable": false,
-                "list_sortable": false
             },
             {
                 "input_slug": "role_slug",
@@ -187,52 +165,6 @@
                 "input_placeholder": "Upload files",
                 "input_type": "file_uploader",
                 "input_unique": false
-            }
-        ]
-    },
-    "notification": {
-        "name": "notification",
-        "slug": "notification",
-        "plural": "notifications",
-        "readonly": false,
-        "sendable": true,
-        "editable": false,
-        "description": "List of notifications.",
-        "api_hooks": {
-            "on_create": "https://tribe-framework.org/custom/sample-hook.php",
-            "on_read": "https://tribe-framework.org/custom/sample-hook.php",
-            "on_update": "https://tribe-framework.org/custom/sample-hook.php",
-            "on_delete": "https://tribe-framework.org/custom/sample-hook.php"
-        },
-        "modules": [
-            {
-                "input_slug": "title",
-                "input_primary": true,
-                "input_type": "text",
-                "var_type": "string",
-                "input_placeholder": "Enter notification text",
-                "input_unique": false,
-                "list_field": true,
-                "list_searchable": true,
-                "list_sortable": true
-            },
-            {
-                "input_slug": "users",
-                "linked_type": "user",
-                "input_placeholder": "Users it must be sent to",
-                "input_type": "select",
-                "input_multiple": true,
-                "var_type": "json"
-            },
-            {
-                "input_slug": "sent_on",
-                "input_placeholder": "Sent on",
-                "input_type": "datetime-local",
-                "var_type": "string",
-                "input_unique": false,
-                "list_field": true,
-                "list_searchable": true,
-                "list_sortable": true
             }
         ]
     }

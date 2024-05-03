@@ -4,7 +4,7 @@ Front-end dev compatible with Tribe.
 
 ## EmberJS
 
-1. Create a new folder in /applications/
+1. Create a new folder in /applications/ and open in IDE or code editor of your choice.
 
 2. Install ember
 ```
@@ -14,15 +14,15 @@ ember init
 ```
 ember install ember-tribe
 ```
-4. Build
+4. Serve
 ```
-ember build -dev
+ember s
 ```
 5. Build
 ```
 ember build -dev
 ```
-6. Deploy to Netlify
+6. Deploy
 
 
 ------------------------------------------------------------------------------
