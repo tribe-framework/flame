@@ -1,0 +1,10 @@
+/.vscode
+/.env
+/uploads/*
+!/uploads/.gitkeep
+/node_modules
+/vendor
+/composer.phar
+*.code-workspace
+sftp-config.json
+.DS_Store
