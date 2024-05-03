@@ -1,0 +1,239 @@
+{
+    "webapp": {
+        "name": "tribe",
+        "slug": "webapp",
+        "description": "An open source, collaborative project management framework.",
+        "api_url": "https://tribe.tribe-framework.org",
+        "interface_urls": {
+            "home": { 
+                "title": "Home", 
+                "slug": "home", 
+                "url": "https://tribe-framework.org"
+            },
+            "junction": { 
+                "title": "Junction", 
+                "slug": "junction", 
+                "url": "https://junction.tribe-framework.org"
+            }
+        },
+        "format": "types.json",
+        "version": "1.0",
+        "searchable_types": ["section", "page"],
+        "allow_type_change": false,
+        "display_activity_log": false,
+        "soft_delete_records": false
+    },
+    "user": {
+        "name": "user",
+        "slug": "user",
+        "plural": "users",
+        "description": "List of users.",
+        "readonly": false,
+        "sendable": false,
+        "editable": true,
+        "modules": [
+            {
+                "input_primary": true,
+                "input_placeholder": "Enter User ID",
+                "input_slug": "user_id",
+                "var_type": "string",
+                "input_type": "hidden",
+                "input_unique": true,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": false
+            },
+            {
+                "input_slug": "name",
+                "input_placeholder": "Enter your full name",
+                "input_type": "text",
+                "var_type": "string",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            },
+            {
+                "input_slug": "email",
+                "input_placeholder": "Email address",
+                "input_type": "email",
+                "var_type": "string",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            },
+            {
+                "input_slug": "mobile",
+                "input_placeholder": "Mobile number",
+                "input_type": "tel",
+                "var_type": "string",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            },
+            {
+                "input_slug": "password",
+                "input_placeholder": "Enter password",
+                "input_type": "text",
+                "var_type": "string",
+                "input_unique": false,
+                "list_field": false,
+                "list_searchable": false,
+                "list_sortable": false
+            },
+            {
+                "input_slug": "role_slug",
+                "input_placeholder": "User role",
+                "input_type": "select",
+                "var_type": "string",
+                "input_options": [
+                    { "slug": "admin", "title": "Admin" },
+                    { "slug": "visitor", "title": "Visitor" }
+                ],
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            }
+        ]
+    },
+    "section": {
+        "name": "section",
+        "slug": "section",
+        "plural": "sections",
+        "description": "List of sections.",
+        "readonly": false,
+        "sendable": false,
+        "editable": true,
+        "modules": [
+            {
+                "input_slug": "title",
+                "input_primary": true,
+                "input_type": "text",
+                "var_type": "string",
+                "input_placeholder": "Enter section title",
+                "input_unique": true,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            }
+        ]
+    },
+    "page": {
+        "name": "page",
+        "slug": "page",
+        "plural": "pages",
+        "description": "List of pages.",
+        "readonly": false,
+        "sendable": false,
+        "editable": true,
+        "modules": [
+            {
+                "input_slug": "title",
+                "input_primary": true,
+                "input_type": "text",
+                "var_type": "string",
+                "input_placeholder": "Enter page title",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            },
+            {
+                "input_slug": "body",
+                "input_placeholder": "Enter content",
+                "input_type": "editorjs",
+                "var_type": "json",
+                "input_unique": false
+            },
+            {
+                "input_slug": "section",
+                "input_placeholder": "Select section",
+                "input_type": "select",
+                "var_type": "string",
+                "input_unique": false
+            },
+            {
+                "input_slug": "publishing_date",
+                "input_placeholder": "Enter publishing date",
+                "input_type": "date",
+                "var_type": "string",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            },
+            {
+                "input_slug": "pinned",
+                "input_type": "checkbox",
+                "var_type": "bool",
+                "input_placeholder": "Pin to top",
+                "input_unique": false,
+                "list_field": true,
+                "list_search": false,
+                "list_sort": true
+            },
+            {
+                "input_slug": "cover_url",
+                "input_placeholder": "Enter content cover URL",
+                "input_type": "url",
+                "var_type": "string",
+                "input_unique": false
+            },
+            {
+                "input_slug": "files",
+                "input_placeholder": "Upload files",
+                "input_type": "file_uploader",
+                "input_unique": false
+            }
+        ]
+    },
+    "notification": {
+        "name": "notification",
+        "slug": "notification",
+        "plural": "notifications",
+        "readonly": false,
+        "sendable": true,
+        "editable": false,
+        "description": "List of notifications.",
+        "api_hooks": {
+            "on_create": "https://tribe-framework.org/custom/sample-hook.php",
+            "on_read": "https://tribe-framework.org/custom/sample-hook.php",
+            "on_update": "https://tribe-framework.org/custom/sample-hook.php",
+            "on_delete": "https://tribe-framework.org/custom/sample-hook.php"
+        },
+        "modules": [
+            {
+                "input_slug": "title",
+                "input_primary": true,
+                "input_type": "text",
+                "var_type": "string",
+                "input_placeholder": "Enter notification text",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            },
+            {
+                "input_slug": "users",
+                "linked_type": "user",
+                "input_placeholder": "Users it must be sent to",
+                "input_type": "select",
+                "input_multiple": true,
+                "var_type": "json"
+            },
+            {
+                "input_slug": "sent_on",
+                "input_placeholder": "Sent on",
+                "input_type": "datetime-local",
+                "var_type": "string",
+                "input_unique": false,
+                "list_field": true,
+                "list_searchable": true,
+                "list_sortable": true
+            }
+        ]
+    }
+}
