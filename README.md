@@ -18,11 +18,12 @@ ember install ember-tribe
 ```
 ember s
 ```
-5. Build
+5. Change project name in app/index.html, app/templates/application.hbs and config/manifest.js
+6. Build
 ```
-ember build -dev
+ember build -prod
 ```
-6. Deploy
+7. Deploy
 
 
 ------------------------------------------------------------------------------
