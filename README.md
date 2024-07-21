@@ -1,14 +1,16 @@
 # Flame
 
-Front-end dev compatible with Tribe.
-
 ## Install
 
-1. Install ember-tribe
+1. Use this Git repository as template or use tribe-framework.org
+
+2. Open command line in the directory that has been installed
+
+3. Install ember-tribe by running following command
 ```
-wget https://raw.githubusercontent.com/tribe-framework/flame/master/install/build.sh; chmod +x build.sh; bash ./build.sh;
+chmod +x ./install/build.sh; bash ./install/build.sh;
 ```
-2. Serve
+4. Serve to start coding
 ```
 ember s
 ```

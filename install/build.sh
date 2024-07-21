@@ -6,10 +6,6 @@ if test -f "$FILE"; then
         cd $DIRECTORY;
         ember init;
         yes | ember install ember-tribe;
-        php sync-types.php;
-        ember build -prod;
-        cd ../../;
-        rm build.sh;
     else
         echo "A directory already exists at applications/home. You cannot overwrite existing application."
     fi
