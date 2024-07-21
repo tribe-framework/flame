@@ -2,29 +2,26 @@
 
 Front-end dev compatible with Tribe.
 
-## EmberJS
+## Install
 
-1. Create a new folder in /applications/ and open in IDE or code editor of your choice.
-
-2. Install ember
+1. Install ember-tribe
 ```
-ember init
+wget https://raw.githubusercontent.com/tribe-framework/flame/master/install/build.sh; chmod +x build.sh; bash ./build.sh;
 ```
-3. Install ember-tribe
-```
-ember install ember-tribe
-```
-4. Serve
+2. Serve
 ```
 ember s
 ```
-5. Change project name in app/index.html, app/templates/application.hbs and config/manifest.js
 
-6. Build
+## Deploy
+
+1. Change project name in app/index.html, app/templates/application.hbs and config/manifest.js
+
+2. Build
 ```
 ember build -prod
 ```
-7. Deploy
+3. Deploy to Netlify or Cloudflare Pages
 
 
 ------------------------------------------------------------------------------
