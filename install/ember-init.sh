@@ -1,7 +1,9 @@
 FILE=.flame
 
 echo "Please enter the name of the Ember directory:"
-read DIRECTORY
+read USER_INPUT
+
+DIRECTORY="applications/$USER_INPUT"
 
 if test -f "$FILE"; then
     if [ ! -d "$DIRECTORY" ]; then
