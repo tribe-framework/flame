@@ -53,6 +53,16 @@ RUN curl https://files.phpmyadmin.net/phpMyAdmin/5.2.2/phpMyAdmin-5.2.2-all-lang
     tar -xzf pma.tar.gz -C /var/www/html/phpmyadmin --strip-components=1 && \
     rm pma.tar.gz
 
+# Copy and execute installation scripts
+COPY ../tribe/install.sh /tmp/tribe_install.sh
+COPY ../junction/install.sh /tmp/junction_install.sh
+
+# Make scripts executable and run them
+RUN chmod +x /tmp/tribe_install.sh /tmp/junction_install.sh && \
+    /tmp/tribe_install.sh && \
+    /tmp/junction_install.sh && \
+    rm /tmp/tribe_install.sh /tmp/junction_install.sh
+
 # Create user for php processes
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
