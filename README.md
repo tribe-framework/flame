@@ -8,15 +8,16 @@
 
 3. Install EmberJS by running the following command, and enter the name of the directory when asked:
 
- - Linux and Mac OS
+- Linux and Mac OS
 
 ```
-chmod +x ./install/ember-init.sh; bash ./install/ember-init.sh;
+chmod +x ./config/ember/init.sh; bash ./config/ember/init.sh;
 ```
 
 - Windows
+
 ```
-powershell -ExecutionPolicy Bypass -File .\install\ember-init.ps1
+powershell -ExecutionPolicy Bypass -File .\config\ember\ember-init.ps1
 ```
 
 4. Serve to start coding

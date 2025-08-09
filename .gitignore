@@ -2,6 +2,7 @@
 /.env
 /uploads/*
 !/uploads/.gitkeep
+/logs/*
 /node_modules
 /vendor
 /composer.phar

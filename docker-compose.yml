@@ -1,0 +1,65 @@
+services:
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_server
+    restart: unless-stopped
+    ports:
+      - "1212:80"
+    volumes:
+      - ./applications/tribe:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./config/php/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
+      - ./.env:/var/www/html/.env
+      - ./logs:/var/log/nginx
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - lemp_network
+
+  # PHP 8 with FPM
+  php:
+    build:
+      context: ./config/php
+      dockerfile: Dockerfile
+    container_name: php_fpm
+    restart: unless-stopped
+    volumes:
+      - ./applications/tribe:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./config/php/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
+      - ./.env:/var/www/html/.env
+      - ./logs:/var/log
+      - ./config/php/php.ini:/usr/local/etc/php/php.ini
+      - ./config/php/config.php:/var/www/html/config/config.php
+    command: >
+      sh -c "composer install --no-interaction --optimize-autoloader &&
+           php-fpm"
+    depends_on:
+      - mysql
+    networks:
+      - lemp_network
+
+  # MySQL 9 Database
+  mysql:
+    image: mysql:9
+    container_name: mysql_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tribe_db
+      MYSQL_USER: tribe_user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./uploads/mysql:/var/lib/mysql
+      - ./config/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - lemp_network
+
+# Networks
+networks:
+  lemp_network:
+    driver: bridge
