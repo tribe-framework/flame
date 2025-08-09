@@ -8,6 +8,8 @@ services:
       - "1212:80"
     volumes:
       - ./applications/tribe:/var/www/html
+      - ./applications/phpmyadmin:/var/www/html/phpmyadmin
+      - ./applications/junction:/var/www/html/junction
       - ./uploads:/var/www/html/uploads
       - ./config/php/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
       - ./.env:/var/www/html/.env
@@ -27,6 +29,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./applications/tribe:/var/www/html
+      - ./applications/phpmyadmin:/var/www/html/phpmyadmin
+      - ./applications/junction:/var/www/html/junction
       - ./uploads:/var/www/html/uploads
       - ./config/php/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
       - ./.env:/var/www/html/.env

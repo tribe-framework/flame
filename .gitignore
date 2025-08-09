@@ -9,3 +9,5 @@
 *.code-workspace
 sftp-config.json
 .DS_Store
+applications/phpmyadmin/
+applications/junction/
