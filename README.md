@@ -11,7 +11,7 @@
 - Linux and Mac OS
 
 ```
-chmod +x ./config/ember/init.sh; bash ./config/ember/init.sh;
+chmod +x ./config/ember/ember-init.sh; bash ./config/ember/ember-init.sh;
 ```
 
 - Windows
