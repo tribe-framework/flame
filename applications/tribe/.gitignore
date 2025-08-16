@@ -1,0 +1,14 @@
+/.vscode
+/.env
+/uploads
+/node_modules
+/config
+/phpmyadmin
+/config/config.php
+/vendor
+/composer.phar
+*.code-workspace
+sftp-config.json
+.DS_Store
+.db/
+/composer.lock

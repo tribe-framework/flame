@@ -1,47 +1,21 @@
 services:
-  # Nginx Web Server
-  nginx:
-    image: nginx:alpine
-    container_name: nginx_server
-    restart: unless-stopped
-    ports:
-      - "1212:80"
+  # config/setup.sh
+  setup:
+    image: alpine:latest
+    container_name: setup_service
     volumes:
-      - ./applications/tribe:/var/www/html
-      - ./applications/phpmyadmin:/var/www/html/phpmyadmin
-      - ./applications/junction:/var/www/html/junction
-      - ./uploads:/var/www/html/uploads
-      - ./config/php/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
-      - ./.env:/var/www/html/.env
-      - ./logs:/var/log/nginx
-      - ./config/nginx/conf.d:/etc/nginx/conf.d
-    depends_on:
-      - php
-    networks:
-      - lemp_network
-
-  # PHP 8 with FPM
-  php:
-    build:
-      context: ./config/php
-      dockerfile: Dockerfile
-    container_name: php_fpm
-    restart: unless-stopped
-    volumes:
-      - ./applications/tribe:/var/www/html
-      - ./applications/phpmyadmin:/var/www/html/phpmyadmin
-      - ./applications/junction:/var/www/html/junction
-      - ./uploads:/var/www/html/uploads
-      - ./config/php/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
-      - ./.env:/var/www/html/.env
-      - ./logs:/var/log
-      - ./config/php/php.ini:/usr/local/etc/php/php.ini
-      - ./config/php/config.php:/var/www/html/config/config.php
-    command: >
-      sh -c "composer install --no-interaction --optimize-autoloader &&
-           php-fpm"
-    depends_on:
-      - mysql
+      - ./config:/config
+      - ./applications:/applications
+      - ./uploads:/uploads
+      - .:/workdir
+    working_dir: /workdir
+    command: sh -c "apk add --no-cache curl unzip bash && bash ./config/setup.sh && touch /tmp/setup_complete && tail -f /dev/null"
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/setup_complete"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
     networks:
       - lemp_network
 
@@ -51,15 +25,122 @@ services:
     container_name: mysql_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: tribe_db
-      MYSQL_USER: tribe_user
-      MYSQL_PASSWORD: userpassword
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - ./uploads/mysql:/var/lib/mysql
       - ./config/mysql/init:/docker-entrypoint-initdb.d
+    depends_on:
+      setup:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - lemp_network
+
+  # PHP 8 with FPM for Tribe
+  php_tribe:
+    build:
+      context: ./config/tribe
+      dockerfile: Dockerfile
+    container_name: php_tribe
+    restart: unless-stopped
+    volumes:
+      - ./applications/tribe:/var/www/html
+      - ./applications/phpmyadmin:/var/www/html/phpmyadmin
+      - ./uploads:/var/www/html/uploads
+      - ./config/tribe/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
+      - ./.env:/var/www/html/.env
+      - ./logs:/var/log
+      - ./config/tribe/php.ini:/usr/local/etc/php/php.ini
+      - ./config/tribe/config.php:/var/www/html/config/config.php
+    command: >
+      sh -c "composer install --no-interaction --optimize-autoloader &&
+           php-fpm"
+    depends_on:
+      setup:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - lemp_network
+
+  # PHP 8 with FPM for Junction
+  php_junction:
+    build:
+      context: ./config/junction
+      dockerfile: Dockerfile
+    container_name: php_junction
+    restart: unless-stopped
+    volumes:
+      - ./applications/junction/dist:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./.env:/var/www/html/.env
+      - ./logs:/var/log
+      - ./config/junction/php.ini:/usr/local/etc/php/php.ini
+      - ./config/junction/config.php:/var/www/html/config/config.php
+    command: >
+      sh -c "composer install --no-interaction --optimize-autoloader &&
+           php-fpm"
+    depends_on:
+      setup:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - lemp_network
+
+  # Nginx Web Server (Tribe)
+  nginx_tribe:
+    image: nginx:alpine
+    container_name: nginx_tribe
+    restart: unless-stopped
+    ports:
+      - "${TRIBE_PORT:-1212}:80"
+    volumes:
+      - ./applications/tribe:/var/www/html
+      - ./applications/phpmyadmin:/var/www/html/phpmyadmin
+      - ./uploads:/var/www/html/uploads
+      - ./config/tribe/config.php:/var/www/html/config/config.php
+      - ./config/tribe/phpmyadmin.config.inc.php:/var/www/html/phpmyadmin/config.inc.php
+      - ./.env:/var/www/html/.env
+      - ./logs:/var/log/nginx
+      - ./config/tribe/conf.d/tribe.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      setup:
+        condition: service_healthy
+      php_tribe:
+        condition: service_started
+    networks:
+      - lemp_network
+
+  # Nginx Web Server (Junction)
+  nginx_junction:
+    image: nginx:alpine
+    container_name: nginx_junction
+    restart: unless-stopped
+    ports:
+      - "${JUNCTION_PORT:-4488}:80"
+    volumes:
+      - ./applications/junction/dist:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./.env:/var/www/html/.env
+      - ./config/junction/config.php:/var/www/html/config/config.php
+      - ./logs:/var/log/nginx
+      - ./config/junction/conf.d/junction.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      setup:
+        condition: service_healthy
+      php_junction:
+        condition: service_started
     networks:
       - lemp_network
 

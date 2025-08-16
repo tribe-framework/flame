@@ -9,5 +9,10 @@
 *.code-workspace
 sftp-config.json
 .DS_Store
-applications/phpmyadmin/
-applications/junction/
+/applications/phpmyadmin/
+/applications/junction/
+
+/junction-dev/
+/phpmyadmin/
+/pma.tar.gz
+/junction-dev.zip
