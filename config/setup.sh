@@ -22,6 +22,7 @@ fi
 # Create directories
 mkdir -p applications
 mkdir -p uploads
+mkdir -p uploads/sites
 
 # Download phpMyAdmin
 echo "📦 Downloading phpMyAdmin..."
@@ -60,6 +61,7 @@ if [ "$SKIP_ENV_SETUP" = false ]; then
     # Use default values directly
     TRIBE_PORT="1212"
     JUNCTION_PORT="4488"
+    STATIC_PORT="12012"
     DB_PORT="3306"
     DB_PASS="userpassword"
     DB_ROOT_PASSWORD="rootpassword"
@@ -68,6 +70,7 @@ if [ "$SKIP_ENV_SETUP" = false ]; then
     # Build URLs using localhost and the provided ports
     TRIBE_BARE_URL="localhost:$TRIBE_PORT"
     JUNCTION_BARE_URL="localhost:$JUNCTION_PORT"
+    STATIC_BARE_URL="localhost:$STATIC_PORT"
     
     echo ""
     echo "📝 Creating .env file..."
@@ -97,6 +100,11 @@ PLAUSIBLE_AUTH=""
 PLAUSIBLE_DOMAIN=""
 HIDE_POSTCODE_ATTRIBUTION="false"
 
+# Static hosting settings
+STATIC_BARE_URL="$STATIC_BARE_URL"
+STATIC_URL="http://$STATIC_BARE_URL"
+STATIC_PORT=$STATIC_PORT
+
 # MySQL database settings
 DB_NAME="tribe_db"
 DB_USER="tribe_user"
@@ -111,6 +119,7 @@ EOF
     echo "📋 Configuration Summary:"
     echo "  Tribe URL: $TRIBE_BARE_URL"
     echo "  Junction URL: $JUNCTION_BARE_URL"
+    echo "  Static Sites URL: $STATIC_BARE_URL"
     echo "  Database Password: $DB_PASS"
     echo "  Database Root Password: $DB_ROOT_PASSWORD"
     echo "  Junction Password: $JUNCTION_PASSWORD"
@@ -119,5 +128,3 @@ else
     echo ""
     echo "ℹ️ Skipping .env setup (file already exists)"
 fi
-
-echo "🎉 Setup complete! You can now run 'docker-compose up -d'"

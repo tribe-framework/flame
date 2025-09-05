@@ -144,6 +144,23 @@ services:
     networks:
       - lemp_network
 
+  # Caddy Static Site Server (Netlify-like)
+  caddy_static:
+    image: caddy:alpine
+    container_name: caddy_static
+    restart: unless-stopped
+    ports:
+      - "${STATIC_PORT:-12012}:84"
+    volumes:
+      - ./uploads/sites:/srv
+      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./logs:/var/log/caddy
+    depends_on:
+      setup:
+        condition: service_healthy
+    networks:
+      - lemp_network
+
 # Networks
 networks:
   lemp_network:
