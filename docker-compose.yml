@@ -128,7 +128,7 @@ services:
     container_name: nginx_junction
     restart: unless-stopped
     ports:
-      - "${JUNCTION_PORT:-4488}:80"
+      - "${JUNCTION_PORT:-4488}:88"
     volumes:
       - ./applications/junction/dist:/var/www/html
       - ./uploads:/var/www/html/uploads
