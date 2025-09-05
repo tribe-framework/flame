@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     python3-pip \
     imagemagick \
+    libmagickwand-dev \
     ffmpeg \
     net-tools \
     nginx \
@@ -27,6 +28,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd
+
+# Install ImageMagick PHP extension via PECL
+RUN pecl install imagick \
+    && docker-php-ext-enable imagick
 
 # Install PHP extensions (using docker-php-ext-install for compatibility)
 RUN docker-php-ext-install \
