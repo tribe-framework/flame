@@ -11,7 +11,7 @@ if [ -d ".env" ]; then
     rm -rf .env
     SKIP_ENV_SETUP=false
 elif [ -f ".env" ]; then
-    echo "⚠️  .env file already exists!"
+    echo "⚠️ .env file already exists!"
     echo "This script will NOT override your existing .env file."
     echo "Continuing with setup anyway..."
     SKIP_ENV_SETUP=true
@@ -23,6 +23,37 @@ fi
 mkdir -p applications
 mkdir -p uploads
 mkdir -p uploads/sites
+
+# Create uploads/sites/dist directory if it doesn't exist
+if [ ! -d "uploads/sites/dist" ]; then
+    echo "📁 Creating uploads/sites/dist directory..."
+    mkdir -p uploads/sites/dist
+    
+    # Create index.html with "Hello, world!" content
+    echo "📄 Creating default index.html..."
+    echo "Hello, world!" > uploads/sites/dist/index.html
+    echo "✅ Default static site created in uploads/sites/dist!"
+else
+    echo "ℹ️ uploads/sites/dist directory already exists, skipping creation"
+fi
+
+# Create uploads/sites/dist-php directory if it doesn't exist
+if [ ! -d "uploads/sites/dist-php" ]; then
+    echo "📁 Creating uploads/sites/dist-php directory..."
+    mkdir -p uploads/sites/dist-php
+    
+    # Create index.php with "Hello, PHP world!" content
+    echo "📄 Creating default index.php..."
+    cat > uploads/sites/dist-php/index.php << 'EOF'
+<?php
+require_once 'config/config.php';
+echo "Hello, PHP world @ ".time();
+?>
+EOF
+    echo "✅ Default PHP site created in uploads/sites/dist-php!"
+else
+    echo "ℹ️ uploads/sites/dist-php directory already exists, skipping creation"
+fi
 
 # Download phpMyAdmin
 echo "📦 Downloading phpMyAdmin..."
@@ -59,9 +90,10 @@ if [ "$SKIP_ENV_SETUP" = false ]; then
     echo "🔧 Setting up environment configuration with default values..."
     
     # Use default values directly
-    TRIBE_PORT="1212"
+    TRIBE_PORT="4480"
     JUNCTION_PORT="4488"
-    STATIC_PORT="12012"
+    STATIC_PORT="4484"
+    DIST_PHP_PORT="4485"
     DB_PORT="3306"
     DB_PASS="userpassword"
     DB_ROOT_PASSWORD="rootpassword"
@@ -71,6 +103,7 @@ if [ "$SKIP_ENV_SETUP" = false ]; then
     TRIBE_BARE_URL="localhost:$TRIBE_PORT"
     JUNCTION_BARE_URL="localhost:$JUNCTION_PORT"
     STATIC_BARE_URL="localhost:$STATIC_PORT"
+    DIST_PHP_BARE_URL="localhost:$DIST_PHP_PORT"
     
     echo ""
     echo "📝 Creating .env file..."
@@ -105,6 +138,11 @@ STATIC_BARE_URL="$STATIC_BARE_URL"
 STATIC_URL="http://$STATIC_BARE_URL"
 STATIC_PORT=$STATIC_PORT
 
+# Dist PHP hosting settings
+DIST_PHP_BARE_URL="$DIST_PHP_BARE_URL"
+DIST_PHP_URL="http://$DIST_PHP_BARE_URL"
+DIST_PHP_PORT=$DIST_PHP_PORT
+
 # MySQL database settings
 DB_NAME="tribe_db"
 DB_USER="tribe_user"
@@ -120,6 +158,7 @@ EOF
     echo "  Tribe URL: $TRIBE_BARE_URL"
     echo "  Junction URL: $JUNCTION_BARE_URL"
     echo "  Static Sites URL: $STATIC_BARE_URL"
+    echo "  Dist PHP URL: $DIST_PHP_BARE_URL"
     echo "  Database Password: $DB_PASS"
     echo "  Database Root Password: $DB_ROOT_PASSWORD"
     echo "  Junction Password: $JUNCTION_PASSWORD"

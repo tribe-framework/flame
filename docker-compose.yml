@@ -98,13 +98,38 @@ services:
     networks:
       - lemp_network
 
+  # PHP 8 with FPM for Dist PHP
+  php_dist_tribe:
+    build:
+      context: ./config/dist-tribe-php
+      dockerfile: Dockerfile
+    container_name: php_dist_tribe
+    restart: unless-stopped
+    volumes:
+      - ./uploads/sites/dist-php:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./.env:/var/www/html/.env
+      - ./logs:/var/log
+      - ./config/dist-tribe-php/php.ini:/usr/local/etc/php/php.ini
+      - ./config/dist-tribe-php/config.php:/var/www/html/config/config.php
+    command: >
+      sh -c "if [ -f composer.json ]; then composer install --no-interaction --optimize-autoloader; fi &&
+           php-fpm"
+    depends_on:
+      setup:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - lemp_network
+
   # Nginx Web Server (Tribe)
   nginx_tribe:
     image: nginx:alpine
     container_name: nginx_tribe
     restart: unless-stopped
     ports:
-      - "${TRIBE_PORT:-1212}:80"
+      - "${TRIBE_PORT:-4480}:80"
     volumes:
       - ./applications/tribe:/var/www/html
       - ./applications/phpmyadmin:/var/www/html/phpmyadmin
@@ -144,15 +169,37 @@ services:
     networks:
       - lemp_network
 
-  # Caddy Static Site Server (Netlify-like)
-  caddy_static:
-    image: caddy:alpine
-    container_name: caddy_static
+  # Nginx Web Server (Dist PHP)
+  nginx_dist_tribe:
+    image: nginx:alpine
+    container_name: nginx_dist_tribe
     restart: unless-stopped
     ports:
-      - "${STATIC_PORT:-12012}:84"
+      - "4485:85"
     volumes:
-      - ./uploads/sites:/srv
+      - ./uploads/sites/dist-php:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./.env:/var/www/html/.env
+      - ./config/dist-tribe-php/config.php:/var/www/html/config/config.php
+      - ./logs:/var/log/nginx
+      - ./config/dist-tribe-php/conf.d/dist-php.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      setup:
+        condition: service_healthy
+      php_dist_tribe:
+        condition: service_started
+    networks:
+      - lemp_network
+
+  # Caddy Static Site Server - Single site from uploads/sites/dist
+  dist_static:
+    image: caddy:alpine
+    container_name: dist_static
+    restart: unless-stopped
+    ports:
+      - "4484:84"
+    volumes:
+      - ./uploads/sites/dist:/srv
       - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./logs:/var/log/caddy
     depends_on:

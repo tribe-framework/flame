@@ -1,10 +1,11 @@
 :84 {
-    # Root directory for static sites
+    # Root directory for single static site
     root * /srv
     
-    # Enable file server with directory browsing
-    file_server browse {
+    # Enable file server
+    file_server {
         hide .env .git
+        index index.html
     }
     
     # Security headers
@@ -16,14 +17,8 @@
         X-Powered-By "Caddy Static Server"
     }
     
-    # Handle SPA routing for subdirectories (if dist folders contain SPAs)
-    @spa_routes path_regexp ^/([^/]+)/.*$
-    handle @spa_routes {
-        try_files {path} /{re.1}/index.html
-    }
-    
-    # Default try_files behavior
-    try_files {path} {path}/index.html
+    # SPA routing - try files then fallback to index.html
+    try_files {path} {path}/index.html /index.html
     
     # Compression
     encode gzip
@@ -39,9 +34,5 @@
     log {
         output file /var/log/caddy/access.log
         format json
-    }
-    
-    file_server {
-        index index.html index.php
     }
 }
