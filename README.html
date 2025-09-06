@@ -90,6 +90,33 @@
                 font-weight: bold;
                 font-size: 1.1rem;
             }
+
+            .service-link-card {
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .service-link-card:hover {
+                border-color: #0d6efd;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+            .service-link-card h6 {
+                color: #0d6efd;
+                margin-bottom: 5px;
+            }
+
+            .service-link-card a {
+                text-decoration: none;
+                font-family: monospace;
+            }
+
+            .service-link-card small {
+                color: #6c757d;
+            }
         </style>
     </head>
     <body>
@@ -689,13 +716,13 @@
                                                             ><br />
                                                             <code
                                                                 class="bg-light p-2 rounded"
-                                                                >docker-compose
-                                                                --version</code
+                                                                >docker compose
+                                                                version</code
                                                             >
                                                         </div>
                                                         <button
                                                             class="btn btn-primary btn-sm copy-btn"
-                                                            onclick="copyToClipboard('docker-compose --version', this)"
+                                                            onclick="copyToClipboard('docker compose version', this)"
                                                         >
                                                             Copy
                                                         </button>
@@ -710,18 +737,18 @@
                                                         <div>
                                                             <strong
                                                                 >Alternative
-                                                                (newer Docker
+                                                                (older Docker
                                                                 versions):</strong
                                                             ><br />
                                                             <code
                                                                 class="bg-light p-2 rounded"
-                                                                >docker compose
-                                                                version</code
+                                                                >docker-compose
+                                                                --version</code
                                                             >
                                                         </div>
                                                         <button
                                                             class="btn btn-primary btn-sm copy-btn"
-                                                            onclick="copyToClipboard('docker compose version', this)"
+                                                            onclick="copyToClipboard('docker-compose --version', this)"
                                                         >
                                                             Copy
                                                         </button>
@@ -930,12 +957,12 @@
                                         <div class="command-block">
                                             <button
                                                 class="btn btn-secondary btn-sm copy-btn-block"
-                                                onclick="copyToClipboard('docker-compose up -d --build', this)"
+                                                onclick="copyToClipboard('docker compose up -d --build', this)"
                                             >
                                                 Copy
                                             </button>
                                             <code
-                                                >docker-compose up -d
+                                                >docker compose up -d
                                                 --build</code
                                             >
                                         </div>
@@ -964,19 +991,19 @@
 
                                         <p class="mt-3 mb-2">
                                             <strong
-                                                >Alternative command for newer
+                                                >Alternative command for older
                                                 Docker versions:</strong
                                             >
                                         </p>
                                         <div class="command-block">
                                             <button
                                                 class="btn btn-secondary btn-sm copy-btn-block"
-                                                onclick="copyToClipboard('docker compose up -d --build', this)"
+                                                onclick="copyToClipboard('docker-compose up -d --build', this)"
                                             >
                                                 Copy
                                             </button>
                                             <code
-                                                >docker compose up -d
+                                                >docker-compose up -d
                                                 --build</code
                                             >
                                         </div>
@@ -984,7 +1011,7 @@
                                 </div>
                             </div>
 
-                            <!-- Step 5: Access Junction -->
+                            <!-- Step 5: Access Backend Services -->
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
                                     <button
@@ -996,7 +1023,7 @@
                                         aria-controls="backend-step5"
                                     >
                                         <span class="step-badge">5</span>
-                                        Access Junction
+                                        Access Backend Services
                                     </button>
                                 </h2>
                                 <div
@@ -1005,62 +1032,108 @@
                                     data-bs-parent="#backendAccordion"
                                 >
                                     <div class="accordion-body">
-                                        <p class="mb-3">
-                                            Once your backend is running, you
-                                            can access Junction through your web
-                                            browser:
+                                        <p class="mb-4">
+                                            Once your backend is running, you can access all the following services through your web browser:
                                         </p>
 
-                                        <div class="alert alert-success">
-                                            <h6 class="alert-heading">
-                                                Access Junction:
-                                            </h6>
-                                            <p class="mb-3">
-                                                Open your web browser and
-                                                navigate to:
-                                            </p>
-                                            <div class="text-center">
-                                                <a
-                                                    href="http://localhost:4488"
-                                                    target="_blank"
-                                                    class="btn btn-primary btn-lg"
-                                                    id="junctionLink"
-                                                >
-                                                    Open Junction
-                                                    (localhost:4488)
-                                                </a>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <h5 class="mb-3">🚀 Main Services</h5>
+                                                
+                                                <div class="service-link-card">
+                                                    <h6>Junction (Backend Management)</h6>
+                                                    <a href="http://junction.localhost:4488" target="_blank" class="d-block mb-1">
+                                                        http://junction.localhost:4488
+                                                    </a>
+                                                    <small>No-code backend service for managing your application</small>
+                                                    <div class="mt-2">
+                                                        <strong>Credentials:</strong> Username: <code>junction</code> | Password: <code>password</code>
+                                                    </div>
+                                                </div>
+
+                                                <div class="service-link-card">
+                                                    <h6>Tribe Framework</h6>
+                                                    <a href="http://tribe.localhost:4480" target="_blank" class="d-block mb-1">
+                                                        http://tribe.localhost:4480
+                                                    </a>
+                                                    <small>Main Tribe Framework interface and documentation</small>
+                                                </div>
+
+                                                <h5 class="mb-3 mt-4">📚 Development Tools</h5>
+
+                                                <div class="service-link-card">
+                                                    <h6>Tribe Documentation</h6>
+                                                    <a href="http://tribe.localhost:4480" target="_blank" class="d-block mb-1">
+                                                        http://tribe.localhost:4480
+                                                    </a>
+                                                    <small>Complete documentation for Tribe Framework</small>
+                                                </div>
+
+                                                <div class="service-link-card">
+                                                    <h6>Tribe APIs</h6>
+                                                    <a href="http://tribe.localhost:4480/api.php/webapp/0" target="_blank" class="d-block mb-1">
+                                                        http://tribe.localhost:4480/api.php/webapp/0
+                                                    </a>
+                                                    <small>RESTful API endpoints for your application</small>
+                                                </div>
+
+                                                <div class="service-link-card">
+                                                    <h6>phpMyAdmin (Database Management)</h6>
+                                                    <a href="http://tribe.localhost:4480/phpmyadmin" target="_blank" class="d-block mb-1">
+                                                        http://tribe.localhost:4480/phpmyadmin
+                                                    </a>
+                                                    <small>Web interface for MySQL database management</small>
+                                                </div>
+
+                                                <div class="service-link-card">
+                                                    <h6>Custom PHP Backend Code</h6>
+                                                    <a href="http://tribe.localhost:4480/custom/" target="_blank" class="d-block mb-1">
+                                                        http://tribe.localhost:4480/custom/*
+                                                    </a>
+                                                    <small>Access your custom PHP backend implementations</small>
+                                                </div>
+
+                                                <h5 class="mb-3 mt-4">🌐 Static Hosting</h5>
+
+                                                <div class="service-link-card">
+                                                    <h6>Static HTML / JAM Stack (dist)</h6>
+                                                    <a href="http://dist.localhost:4484" target="_blank" class="d-block mb-1">
+                                                        http://dist.localhost:4484
+                                                    </a>
+                                                    <small>Serve static HTML and JAM Stack applications</small>
+                                                </div>
+
+                                                <div class="service-link-card">
+                                                    <h6>Static HTML + PHP Middleware (dist-php)</h6>
+                                                    <a href="http://dist-php.localhost:4485" target="_blank" class="d-block mb-1">
+                                                        http://dist-php.localhost:4485
+                                                    </a>
+                                                    <small>Static HTML with PHP middleware support</small>
+                                                </div>
+
+                                                <h5 class="mb-3 mt-4">🗄️ Database</h5>
+
+                                                <div class="service-link-card">
+                                                    <h6>Direct MySQL Access</h6>
+                                                    <a href="#" class="d-block mb-1 text-muted" onclick="event.preventDefault();">
+                                                        mysql.localhost:3306
+                                                    </a>
+                                                    <small>Direct database connection (use MySQL client, not browser)</small>
+                                                    <div class="mt-2">
+                                                        <strong>Connection Details:</strong><br>
+                                                        Host: <code>mysql.localhost</code> | Port: <code>3306</code><br>
+                                                        Database: <code>tribe</code> | User: <code>root</code> | Password: <code>root</code>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="alert alert-info mt-4">
-                                            <h6 class="alert-heading">
-                                                Junction Credentials:
-                                            </h6>
-                                            <p class="mb-2">
-                                                Use the following credentials to
-                                                log in:
-                                            </p>
-                                            <ul class="mb-0">
-                                                <li>
-                                                    <strong
-                                                        >Username/Slug:</strong
-                                                    >
-                                                    junction
-                                                </li>
-                                                <li>
-                                                    <strong>Password:</strong>
-                                                    password
-                                                </li>
-                                            </ul>
+                                        <div class="alert alert-warning mt-4">
+                                            <strong>⚠️ Note:</strong> Make sure your Docker containers are fully running before attempting to access these services. If you can't access a service, wait a few moments for the containers to fully start up.
                                         </div>
 
-                                        <div class="alert alert-warning mt-3">
-                                            <strong>Note:</strong> Make sure
-                                            your Docker containers are running
-                                            before attempting to access
-                                            Junction. If you can't access the
-                                            page, wait a few moments for the
-                                            containers to fully start up.
+                                        <div class="alert alert-info mt-3">
+                                            <strong>💡 Tip:</strong> All services use subdomain routing. If you're having trouble accessing them, ensure your system can resolve <code>*.localhost</code> domains. Most modern systems handle this automatically.
                                         </div>
                                     </div>
                                 </div>
@@ -1095,27 +1168,27 @@
                                         <div class="command-block">
                                             <button
                                                 class="btn btn-secondary btn-sm copy-btn-block"
-                                                onclick="copyToClipboard('docker-compose down', this)"
+                                                onclick="copyToClipboard('docker compose down', this)"
                                             >
                                                 Copy
                                             </button>
-                                            <code>docker-compose down</code>
+                                            <code>docker compose down</code>
                                         </div>
 
                                         <p class="mt-3 mb-2">
                                             <strong
-                                                >Alternative command for newer
+                                                >Alternative command for older
                                                 Docker versions:</strong
                                             >
                                         </p>
                                         <div class="command-block">
                                             <button
                                                 class="btn btn-secondary btn-sm copy-btn-block"
-                                                onclick="copyToClipboard('docker compose down', this)"
+                                                onclick="copyToClipboard('docker-compose down', this)"
                                             >
                                                 Copy
                                             </button>
-                                            <code>docker compose down</code>
+                                            <code>docker-compose down</code>
                                         </div>
 
                                         <div class="alert alert-warning mt-4">
@@ -1170,7 +1243,7 @@
                                         <p class="mb-0">
                                             <strong>Serve:</strong>
                                             <code>ember s</code><br />
-                                            <strong>Access Frontend:</strong>
+                                            <strong>Access:</strong>
                                             <a
                                                 href="http://localhost:4200"
                                                 target="_blank"
@@ -1184,23 +1257,41 @@
                                 
                                 <div class="col-md-6">
                                     <div class="alert alert-primary">
-                                        <h5>Backend (Junction + Tribe API)</h5>
+                                        <h5>Backend Services</h5>
                                         <p class="mb-0">
                                             <strong>Start:</strong>
-                                            <code
-                                                >docker-compose up -d
-                                                --build</code
-                                            ><br />
-                                            <strong>Access Junction:</strong>
-                                            <a
-                                                href="http://localhost:4488"
-                                                target="_blank"
-                                                id="quickJunctionLink"
-                                                >localhost:4488</a
-                                            ><br />
+                                            <code>docker-compose up -d --build</code><br />
                                             <strong>Stop:</strong>
                                             <code>docker-compose down</code>
                                         </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h5 class="mb-3">🔗 All Service URLs</h5>
+                                        <div class="row text-start">
+                                            <div class="col-md-6">
+                                                <strong>Core Services:</strong>
+                                                <ul class="mb-0">
+                                                    <li><a href="http://junction.localhost:4488" target="_blank">Junction</a> - :4488</li>
+                                                    <li><a href="http://tribe.localhost:4480" target="_blank">Tribe Framework</a> - :4480</li>
+                                                    <li><a href="http://tribe.localhost:4480/api.php/webapp/0" target="_blank">Tribe APIs</a></li>
+                                                    <li><a href="http://tribe.localhost:4480/phpmyadmin" target="_blank">phpMyAdmin</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Static & Custom:</strong>
+                                                <ul class="mb-0">
+                                                    <li><a href="http://dist.localhost:4484" target="_blank">Static/JAM Stack</a> - :4484</li>
+                                                    <li><a href="http://dist-php.localhost:4485" target="_blank">Static + PHP</a> - :4485</li>
+                                                    <li><a href="http://tribe.localhost:4480/custom/" target="_blank">Custom PHP</a></li>
+                                                    <li>MySQL Direct - :3306</li>
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1211,13 +1302,21 @@
                             <h3 class="text-center mb-4">
                                 About Tribe Framework
                             </h3>
-                            <p class="text-center text-muted">
-                                Tribe is a web project management framework that
-                                allows us to build platforms, products,
-                                applications and web interfaces using a modular
-                                approach. It provides a coherent language for
-                                UX, content, design and code collaborations.
+                            <p class="text-center text-muted mb-4">
+                                Tribe is a collaborative framework designed for rapid, scalable web development. 
+                                It provides a complete ecosystem for building modern web applications with a focus on 
+                                modularity, scalability, and developer experience. Tribe consists of three core components 
+                                working together: 35+ integrated repositories, Junction (no-code backend), and Ember (frontend stack).
                             </p>
+                            <p class="text-center text-muted mb-4">
+                                Built to handle millions of users from launch, Tribe evolves continuously with the technology 
+                                landscape while maintaining 100% backward compatibility since its inception in November 2017.
+                            </p>
+                            <div class="text-center">
+                                <a href="https://github.com/tribe-framework" target="_blank" class="btn btn-outline-primary btn-lg mb-3">
+                                    📚 Learn More on GitHub
+                                </a>
+                            </div>
                             <div class="text-center mt-3">
                                 <small class="text-muted">
                                     <strong>License:</strong> The GNU General

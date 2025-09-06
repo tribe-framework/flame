@@ -57,14 +57,14 @@ fi
 
 # Download phpMyAdmin
 echo "📦 Downloading phpMyAdmin..."
-if [ -d "applications/phpmyadmin" ]; then
+if [ -d "applications/tribe/phpmyadmin" ]; then
     echo "🗑️ Removing existing phpmyadmin directory..."
-    rm -rf applications/phpmyadmin
+    rm -rf applications/tribe/phpmyadmin
 fi
     
 curl -L https://files.phpmyadmin.net/phpMyAdmin/5.2.2/phpMyAdmin-5.2.2-all-languages.tar.gz -o pma.tar.gz
-mkdir -p applications/phpmyadmin
-tar -xzf pma.tar.gz -C applications/phpmyadmin --strip-components=1
+mkdir -p applications/tribe/phpmyadmin
+tar -xzf pma.tar.gz -C applications/tribe/phpmyadmin --strip-components=1
 rm pma.tar.gz
 echo "✅ phpMyAdmin downloaded successfully!"
 
