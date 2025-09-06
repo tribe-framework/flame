@@ -23,6 +23,7 @@ fi
 mkdir -p applications
 mkdir -p uploads
 mkdir -p uploads/sites
+mkdir -p uploads/syncthing
 
 # Create uploads/sites/dist directory if it doesn't exist
 if [ ! -d "uploads/sites/dist" ]; then
@@ -54,6 +55,30 @@ EOF
 else
     echo "ℹ️ uploads/sites/dist-php directory already exists, skipping creation"
 fi
+
+# Create Syncthing ignore file
+echo "🔄 Setting up Syncthing ignore patterns..."
+cat > .stignore << 'EOF'
+# Syncthing ignore patterns
+.git
+
+# Ignore Syncthing's own files
+.stfolder
+.stignore
+.stversions
+
+# Ignore Docker volumes that are auto-generated
+logs
+
+# Ignore temporary files
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+EOF
+
+echo "✅ Syncthing ignore file created!"
 
 # Download phpMyAdmin
 echo "📦 Downloading phpMyAdmin..."
@@ -98,6 +123,7 @@ if [ "$SKIP_ENV_SETUP" = false ]; then
     DB_PASS="userpassword"
     DB_ROOT_PASSWORD="rootpassword"
     JUNCTION_PASSWORD="password"
+    SYNCTHING_GUI_PORT="8384"
     
     # Build URLs using localhost and the provided ports
     TRIBE_BARE_URL="localhost:$TRIBE_PORT"
@@ -150,6 +176,9 @@ DB_PASS="$DB_PASS"
 DB_ROOT_PASSWORD="$DB_ROOT_PASSWORD"
 DB_HOST="mysql"
 DB_PORT=$DB_PORT
+
+# Syncthing settings
+SYNCTHING_GUI_PORT=$SYNCTHING_GUI_PORT
 EOF
     
     echo "✅ .env file created successfully!"
@@ -159,9 +188,16 @@ EOF
     echo "  Junction URL: $JUNCTION_BARE_URL"
     echo "  Static Sites URL: $STATIC_BARE_URL"
     echo "  Dist PHP URL: $DIST_PHP_BARE_URL"
+    echo "  Syncthing GUI: localhost:$SYNCTHING_GUI_PORT"
     echo "  Database Password: $DB_PASS"
     echo "  Database Root Password: $DB_ROOT_PASSWORD"
     echo "  Junction Password: $JUNCTION_PASSWORD"
+    echo ""
+    echo "🔄 Syncthing Setup Instructions:"
+    echo "  1. After starting Docker, access Syncthing at: http://localhost:$SYNCTHING_GUI_PORT"
+    echo "  2. Go to Actions → Settings → GUI and set a username/password for security"
+    echo "  3. Add your project folder and share it with other developers"
+    echo "  4. Only .git folder will be ignored - everything else syncs in real-time!"
     echo ""
 else
     echo ""

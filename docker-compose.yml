@@ -31,6 +31,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     ports:
       - "${DB_PORT:-3306}:3306"
+    user: "999:999"
     volumes:
       - ./uploads/mysql:/var/lib/mysql
       - ./config/mysql/init:/docker-entrypoint-initdb.d
@@ -202,6 +203,28 @@ services:
       - ./uploads/sites/dist:/srv
       - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./logs:/var/log/caddy
+    depends_on:
+      setup:
+        condition: service_healthy
+    networks:
+      - lemp_network
+
+  # Syncthing for real-time file syncing
+  syncthing_sync:
+    image: syncthing/syncthing:latest
+    container_name: syncthing_sync
+    restart: unless-stopped
+    ports:
+      - "${SYNCTHING_GUI_PORT:-8384}:8384"  # Web GUI
+      - "22000:22000/tcp"    # File transfers
+      - "22000:22000/udp"    # File transfers
+      - "21027:21027/udp"    # Discovery
+    volumes:
+      - .:/var/syncthing/Sync:rw  # Mount entire project root
+      - ./uploads/syncthing:/var/syncthing/config
+    environment:
+      - PUID=1000
+      - PGID=1000
     depends_on:
       setup:
         condition: service_healthy

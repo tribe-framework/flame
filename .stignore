@@ -1,0 +1,17 @@
+# Syncthing ignore patterns
+.git
+
+# Ignore Syncthing's own files
+.stfolder
+.stignore
+.stversions
+
+# Ignore Docker volumes that are auto-generated
+logs
+
+# Ignore temporary files
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
