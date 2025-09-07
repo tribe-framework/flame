@@ -97,7 +97,7 @@ services:
     container_name: ${PROJECT_NAME}_nginx_tribe
     restart: unless-stopped
     ports:
-      - "${TRIBE_PORT:-4480}:80"
+      - "${TRIBE_PORT:-4480}:4480"
     volumes:
       - ./applications/tribe:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -121,7 +121,7 @@ services:
     container_name: ${PROJECT_NAME}_nginx_junction
     restart: unless-stopped
     ports:
-      - "${JUNCTION_PORT:-4488}:88"
+      - "${JUNCTION_PORT:-4488}:4488"
     volumes:
       - ./applications/junction/dist:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -143,7 +143,7 @@ services:
     container_name: ${PROJECT_NAME}_nginx_dist_tribe
     restart: unless-stopped
     ports:
-      - "${DIST_PHP_PORT:-4485}:85"
+      - "${DIST_PHP_PORT:-4485}:4485"
     volumes:
       - ./uploads/sites/dist-php:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -165,11 +165,75 @@ services:
     container_name: ${PROJECT_NAME}_dist_static
     restart: unless-stopped
     ports:
-      - "${STATIC_PORT:-4484}:84"
+      - "${STATIC_PORT:-4484}:4484"
     volumes:
       - ./uploads/sites/dist:/srv
       - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./logs:/var/log/caddy
+    depends_on:
+      setup:
+        condition: service_healthy
+    networks:
+      - tribe_network
+
+  # MySQL Backup Service
+  mysql_backup:
+    image: mysql:9
+    container_name: ${PROJECT_NAME}_mysql_backup
+    restart: "no"
+    volumes:
+      - ./uploads/backups:/backups
+    environment:
+      - MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - PROJECT_NAME=${PROJECT_NAME}
+    command: >
+      sh -c "
+        # Function to create backup
+        create_backup() {
+          echo 'Creating MySQL backup...'
+          BACKUP_DATE=\$$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE=\"/backups/${PROJECT_NAME}_backup_\$$BACKUP_DATE.sql.gz\"
+          
+          # Create the backup
+          mysqldump -h \$$DB_HOST -P \$$DB_PORT -u root --single-transaction --routines --triggers \$$DB_NAME | gzip > \$$BACKUP_FILE
+          
+          if [ \$$? -eq 0 ]; then
+            echo \"Backup created successfully: \$$BACKUP_FILE\"
+            
+            # Keep only last 7 backups
+            echo 'Cleaning up old backups (keeping last 7)...'
+            cd /backups
+            ls -t ${PROJECT_NAME}_backup_*.sql.gz | tail -n +8 | xargs -r rm -f
+            echo 'Backup cleanup completed'
+          else
+            echo 'Backup failed!'
+            exit 1
+          fi
+        }
+        
+        # Function to handle shutdown signal
+        cleanup() {
+          echo 'Received shutdown signal, creating final backup...'
+          create_backup
+          echo 'Backup service shutting down'
+          exit 0
+        }
+        
+        # Set up signal handler
+        trap cleanup SIGTERM SIGINT
+        
+        # Create initial backup
+        create_backup
+        
+        # Keep the container running and wait for signals
+        echo 'Backup service started. Waiting for shutdown signal...'
+        while true; do
+          sleep 30
+        done
+      "
     depends_on:
       setup:
         condition: service_healthy

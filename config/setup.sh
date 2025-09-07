@@ -30,8 +30,8 @@ set +a
 echo "🔍 Testing MySQL connection..."
 
 # First check if container exists and is running
-if ! docker ps --format '{{.Names}}' | grep -q "^tribe_mysql_server$"; then
-    echo "❌ tribe_mysql_server container is not running"
+if ! docker ps --format '{{.Names}}' | grep -q "^${DB_HOST}$"; then
+    echo "❌ ${DB_HOST} container is not running"
     echo "   Please start tribe-server first: docker compose up -d"
     exit 1
 fi
@@ -40,12 +40,12 @@ fi
 echo "⏳ Waiting for MySQL to be ready..."
 timeout=60
 count=0
-until docker exec tribe_mysql_server mysqladmin ping -u root -p"${MYSQL_ROOT_PASSWORD}" --silent 2>/dev/null; do
+until docker exec ${DB_HOST} mysqladmin ping -u root -p"${MYSQL_ROOT_PASSWORD}" --silent 2>/dev/null; do
     sleep 2
     count=$((count + 2))
     if [ $count -ge $timeout ]; then
         echo "❌ MySQL did not become ready within ${timeout} seconds"
-        docker logs tribe_mysql_server | tail -10
+        docker logs ${DB_HOST} | tail -10
         exit 1
     fi
 done
@@ -56,13 +56,13 @@ echo "✅ MySQL is ready and connection successful!"
 echo "🔍 Checking if database ${DB_NAME} exists..."
 
 # More reliable database existence check
-DB_EXISTS=$(docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -sN -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}';")
+DB_EXISTS=$(docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -sN -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}';")
 
 if [ "$DB_EXISTS" -eq 0 ]; then
     echo "📦 Database ${DB_NAME} does not exist. Creating..."
     
     # Create database
-    if docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
+    if docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
         echo "✅ Database ${DB_NAME} created successfully!"
     else
         echo "❌ Failed to create database ${DB_NAME}"
@@ -71,7 +71,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
     
     # Create user if not exists
     echo "👤 Creating database user ${DB_USER}..."
-    if docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"; then
+    if docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"; then
         echo "✅ User ${DB_USER} created successfully!"
     else
         echo "❌ Failed to create user ${DB_USER}"
@@ -80,7 +80,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
     
     # Grant privileges
     echo "🔐 Granting privileges to ${DB_USER}..."
-    docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'%'; FLUSH PRIVILEGES;"
+    docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'%'; FLUSH PRIVILEGES;"
     echo "✅ Privileges granted to ${DB_USER}!"
     
     # Import SQL schema
@@ -88,7 +88,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
         echo "📥 Importing database schema from install.sql..."
         
         # Import directly without copying to container
-        if docker exec -i tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" "$DB_NAME" < /config/mysql/init/install.sql; then
+        if docker exec -i ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" "$DB_NAME" < /config/mysql/init/install.sql; then
             echo "✅ Database schema imported successfully!"
         else
             echo "❌ Failed to import database schema"
@@ -107,6 +107,7 @@ fi
 mkdir -p applications
 mkdir -p uploads
 mkdir -p uploads/sites
+mkdir -p uploads/backups
 
 # Create uploads/sites/dist directory if it doesn't exist
 if [ ! -d "uploads/sites/dist" ]; then
