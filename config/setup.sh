@@ -5,25 +5,108 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
-# Check if .env exists and handle accordingly
-if [ -d ".env" ]; then
-    echo "🗑️ Found .env directory - removing it..."
-    rm -rf .env
-    SKIP_ENV_SETUP=false
-elif [ -f ".env" ]; then
-    echo "⚠️ .env file already exists!"
-    echo "This script will NOT override your existing .env file."
-    echo "Continuing with setup anyway..."
-    SKIP_ENV_SETUP=true
+# Check if tribe-server is running
+echo "🔍 Checking if tribe-server is running..."
+if ! docker network ls | grep -q "tribe_network"; then
+    echo "❌ tribe_network not found!"
+    echo ""
+    echo "Please ensure tribe-server is running first:"
+    echo "  1. Clone or create the tribe-server project"
+    echo "  2. Run: docker compose up -d"
+    echo "  3. Then run this project setup"
+    echo ""
+    echo "The tribe-server provides MySQL and Syncthing services for all projects."
+    exit 1
 else
-    SKIP_ENV_SETUP=false
+    echo "✅ tribe_network found - tribe-server is running!"
+fi
+
+# Load environment variables
+set -a
+[ -f .env ] && source .env
+set +a
+
+# Validate database connection
+echo "🔍 Testing MySQL connection..."
+
+# First check if container exists and is running
+if ! docker ps --format '{{.Names}}' | grep -q "^tribe_mysql_server$"; then
+    echo "❌ tribe_mysql_server container is not running"
+    echo "   Please start tribe-server first: docker compose up -d"
+    exit 1
+fi
+
+# Wait for MySQL to be ready
+echo "⏳ Waiting for MySQL to be ready..."
+timeout=60
+count=0
+until docker exec tribe_mysql_server mysqladmin ping -u root -p"${MYSQL_ROOT_PASSWORD}" --silent 2>/dev/null; do
+    sleep 2
+    count=$((count + 2))
+    if [ $count -ge $timeout ]; then
+        echo "❌ MySQL did not become ready within ${timeout} seconds"
+        docker logs tribe_mysql_server | tail -10
+        exit 1
+    fi
+done
+
+echo "✅ MySQL is ready and connection successful!"
+
+# Check if database exists
+echo "🔍 Checking if database ${DB_NAME} exists..."
+
+# More reliable database existence check
+DB_EXISTS=$(docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -sN -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}';")
+
+if [ "$DB_EXISTS" -eq 0 ]; then
+    echo "📦 Database ${DB_NAME} does not exist. Creating..."
+    
+    # Create database
+    if docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
+        echo "✅ Database ${DB_NAME} created successfully!"
+    else
+        echo "❌ Failed to create database ${DB_NAME}"
+        exit 1
+    fi
+    
+    # Create user if not exists
+    echo "👤 Creating database user ${DB_USER}..."
+    if docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"; then
+        echo "✅ User ${DB_USER} created successfully!"
+    else
+        echo "❌ Failed to create user ${DB_USER}"
+        exit 1
+    fi
+    
+    # Grant privileges
+    echo "🔐 Granting privileges to ${DB_USER}..."
+    docker exec tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'%'; FLUSH PRIVILEGES;"
+    echo "✅ Privileges granted to ${DB_USER}!"
+    
+    # Import SQL schema
+    if [ -f "/config/mysql/init/install.sql" ]; then
+        echo "📥 Importing database schema from install.sql..."
+        
+        # Import directly without copying to container
+        if docker exec -i tribe_mysql_server mysql -u root -p"$MYSQL_ROOT_PASSWORD" "$DB_NAME" < /config/mysql/init/install.sql; then
+            echo "✅ Database schema imported successfully!"
+        else
+            echo "❌ Failed to import database schema"
+            exit 1
+        fi
+    else
+        echo "⚠️ install.sql file not found, skipping schema import"
+    fi
+    
+else
+    echo "✅ Database ${DB_NAME} already exists!"
+    echo "ℹ️ Skipping database creation and schema import."
 fi
 
 # Create directories
 mkdir -p applications
 mkdir -p uploads
 mkdir -p uploads/sites
-mkdir -p uploads/syncthing
 
 # Create uploads/sites/dist directory if it doesn't exist
 if [ ! -d "uploads/sites/dist" ]; then
@@ -56,30 +139,6 @@ else
     echo "ℹ️ uploads/sites/dist-php directory already exists, skipping creation"
 fi
 
-# Create Syncthing ignore file
-echo "🔄 Setting up Syncthing ignore patterns..."
-cat > .stignore << 'EOF'
-# Syncthing ignore patterns
-.git
-
-# Ignore Syncthing's own files
-.stfolder
-.stignore
-.stversions
-
-# Ignore Docker volumes that are auto-generated
-logs
-
-# Ignore temporary files
-*.tmp
-*.swp
-*~
-.DS_Store
-Thumbs.db
-EOF
-
-echo "✅ Syncthing ignore file created!"
-
 # Download phpMyAdmin
 echo "📦 Downloading phpMyAdmin..."
 if [ -d "applications/tribe/phpmyadmin" ]; then
@@ -108,98 +167,3 @@ rm -rf junction-dev
 rm junction-dev.zip
 chmod -R 755 applications/junction
 echo "✅ Junction downloaded successfully!"
-
-# Setup environment configuration
-if [ "$SKIP_ENV_SETUP" = false ]; then
-    echo ""
-    echo "🔧 Setting up environment configuration with default values..."
-    
-    # Use default values directly
-    TRIBE_PORT="4480"
-    JUNCTION_PORT="4488"
-    STATIC_PORT="4484"
-    DIST_PHP_PORT="4485"
-    DB_PORT="3306"
-    DB_PASS="userpassword"
-    DB_ROOT_PASSWORD="rootpassword"
-    JUNCTION_PASSWORD="password"
-    SYNCTHING_GUI_PORT="8384"
-    
-    # Build URLs using localhost and the provided ports
-    TRIBE_BARE_URL="localhost:$TRIBE_PORT"
-    JUNCTION_BARE_URL="localhost:$JUNCTION_PORT"
-    STATIC_BARE_URL="localhost:$STATIC_PORT"
-    DIST_PHP_BARE_URL="localhost:$DIST_PHP_PORT"
-    
-    echo ""
-    echo "📝 Creating .env file..."
-    
-    # Create .env file from template with default values
-    cat > .env << EOF
-# Config for Tribe and Junction
-SSL=false
-DISPLAY_ERRORS=false
-ALLOW_API_FULL_ACCESS=true
-DEFAULT_TIMEZONE="Asia/Kolkata"
-
-# Tribe settings
-TRIBE_BARE_URL="$TRIBE_BARE_URL"
-TRIBE_URL="http://$TRIBE_BARE_URL"
-TRIBE_PORT=$TRIBE_PORT
-
-# Junction settings
-JUNCTION_BARE_URL="$JUNCTION_BARE_URL"
-JUNCTION_URL="http://$JUNCTION_BARE_URL"
-JUNCTION_SLUG="junction"
-JUNCTION_PASSWORD="$JUNCTION_PASSWORD"
-TRIBE_API_URL="http://$TRIBE_BARE_URL"
-TRIBE_API_KEY=""
-JUNCTION_PORT=$JUNCTION_PORT
-PLAUSIBLE_AUTH=""
-PLAUSIBLE_DOMAIN=""
-HIDE_POSTCODE_ATTRIBUTION="false"
-
-# Static hosting settings
-STATIC_BARE_URL="$STATIC_BARE_URL"
-STATIC_URL="http://$STATIC_BARE_URL"
-STATIC_PORT=$STATIC_PORT
-
-# Dist PHP hosting settings
-DIST_PHP_BARE_URL="$DIST_PHP_BARE_URL"
-DIST_PHP_URL="http://$DIST_PHP_BARE_URL"
-DIST_PHP_PORT=$DIST_PHP_PORT
-
-# MySQL database settings
-DB_NAME="tribe_db"
-DB_USER="tribe_user"
-DB_PASS="$DB_PASS"
-DB_ROOT_PASSWORD="$DB_ROOT_PASSWORD"
-DB_HOST="mysql"
-DB_PORT=$DB_PORT
-
-# Syncthing settings
-SYNCTHING_GUI_PORT=$SYNCTHING_GUI_PORT
-EOF
-    
-    echo "✅ .env file created successfully!"
-    echo ""
-    echo "📋 Configuration Summary:"
-    echo "  Tribe URL: $TRIBE_BARE_URL"
-    echo "  Junction URL: $JUNCTION_BARE_URL"
-    echo "  Static Sites URL: $STATIC_BARE_URL"
-    echo "  Dist PHP URL: $DIST_PHP_BARE_URL"
-    echo "  Syncthing GUI: localhost:$SYNCTHING_GUI_PORT"
-    echo "  Database Password: $DB_PASS"
-    echo "  Database Root Password: $DB_ROOT_PASSWORD"
-    echo "  Junction Password: $JUNCTION_PASSWORD"
-    echo ""
-    echo "🔄 Syncthing Setup Instructions:"
-    echo "  1. After starting Docker, access Syncthing at: http://localhost:$SYNCTHING_GUI_PORT"
-    echo "  2. Go to Actions → Settings → GUI and set a username/password for security"
-    echo "  3. Add your project folder and share it with other developers"
-    echo "  4. Only .git folder will be ignored - everything else syncs in real-time!"
-    echo ""
-else
-    echo ""
-    echo "ℹ️ Skipping .env setup (file already exists)"
-fi

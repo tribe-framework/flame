@@ -2,14 +2,15 @@ services:
   # config/setup.sh
   setup:
     image: alpine:latest
-    container_name: setup_service
+    container_name: ${PROJECT_NAME}_setup
     volumes:
       - ./config:/config
       - ./applications:/applications
       - ./uploads:/uploads
       - .:/workdir
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
     working_dir: /workdir
-    command: sh -c "apk add --no-cache curl unzip bash && bash ./config/setup.sh && touch /tmp/setup_complete && tail -f /dev/null"
+    command: sh -c "apk add --no-cache curl unzip bash docker-cli && bash ./config/setup.sh && touch /tmp/setup_complete && tail -f /dev/null"
     healthcheck:
       test: ["CMD", "test", "-f", "/tmp/setup_complete"]
       interval: 5s
@@ -17,42 +18,14 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - lemp_network
-
-  # MySQL 9 Database
-  mysql:
-    image: mysql:9
-    container_name: mysql_db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
-    ports:
-      - "${DB_PORT:-3306}:3306"
-    user: "999:999"
-    volumes:
-      - ./uploads/mysql:/var/lib/mysql
-      - ./config/mysql/init:/docker-entrypoint-initdb.d
-    depends_on:
-      setup:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - lemp_network
+      - tribe_network
 
   # PHP 8 with FPM for Tribe
   php_tribe:
     build:
       context: ./config/tribe
       dockerfile: Dockerfile
-    container_name: php_tribe
+    container_name: ${PROJECT_NAME}_php_tribe
     restart: unless-stopped
     volumes:
       - ./applications/tribe:/var/www/html
@@ -69,17 +42,15 @@ services:
     depends_on:
       setup:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
     networks:
-      - lemp_network
+      - tribe_network
 
   # PHP 8 with FPM for Junction
   php_junction:
     build:
       context: ./config/junction
       dockerfile: Dockerfile
-    container_name: php_junction
+    container_name: ${PROJECT_NAME}_php_junction
     restart: unless-stopped
     volumes:
       - ./applications/junction/dist:/var/www/html
@@ -94,17 +65,15 @@ services:
     depends_on:
       setup:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
     networks:
-      - lemp_network
+      - tribe_network
 
   # PHP 8 with FPM for Dist PHP
   php_dist_tribe:
     build:
       context: ./config/dist-tribe-php
       dockerfile: Dockerfile
-    container_name: php_dist_tribe
+    container_name: ${PROJECT_NAME}_php_dist_tribe
     restart: unless-stopped
     volumes:
       - ./uploads/sites/dist-php:/var/www/html
@@ -119,15 +88,13 @@ services:
     depends_on:
       setup:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
     networks:
-      - lemp_network
+      - tribe_network
 
   # Nginx Web Server (Tribe)
   nginx_tribe:
     image: nginx:alpine
-    container_name: nginx_tribe
+    container_name: ${PROJECT_NAME}_nginx_tribe
     restart: unless-stopped
     ports:
       - "${TRIBE_PORT:-4480}:80"
@@ -146,12 +113,12 @@ services:
       php_tribe:
         condition: service_started
     networks:
-      - lemp_network
+      - tribe_network
 
   # Nginx Web Server (Junction)
   nginx_junction:
     image: nginx:alpine
-    container_name: nginx_junction
+    container_name: ${PROJECT_NAME}_nginx_junction
     restart: unless-stopped
     ports:
       - "${JUNCTION_PORT:-4488}:88"
@@ -168,15 +135,15 @@ services:
       php_junction:
         condition: service_started
     networks:
-      - lemp_network
+      - tribe_network
 
   # Nginx Web Server (Dist PHP)
   nginx_dist_tribe:
     image: nginx:alpine
-    container_name: nginx_dist_tribe
+    container_name: ${PROJECT_NAME}_nginx_dist_tribe
     restart: unless-stopped
     ports:
-      - "4485:85"
+      - "${DIST_PHP_PORT:-4485}:85"
     volumes:
       - ./uploads/sites/dist-php:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -190,15 +157,15 @@ services:
       php_dist_tribe:
         condition: service_started
     networks:
-      - lemp_network
+      - tribe_network
 
   # Caddy Static Site Server - Single site from uploads/sites/dist
   dist_static:
     image: caddy:alpine
-    container_name: dist_static
+    container_name: ${PROJECT_NAME}_dist_static
     restart: unless-stopped
     ports:
-      - "4484:84"
+      - "${STATIC_PORT:-4484}:84"
     volumes:
       - ./uploads/sites/dist:/srv
       - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
@@ -207,31 +174,11 @@ services:
       setup:
         condition: service_healthy
     networks:
-      - lemp_network
-
-  # Syncthing for real-time file syncing
-  syncthing_sync:
-    image: syncthing/syncthing:latest
-    container_name: syncthing_sync
-    restart: unless-stopped
-    ports:
-      - "${SYNCTHING_GUI_PORT:-8384}:8384"  # Web GUI
-      - "22000:22000/tcp"    # File transfers
-      - "22000:22000/udp"    # File transfers
-      - "21027:21027/udp"    # Discovery
-    volumes:
-      - .:/var/syncthing/Sync:rw  # Mount entire project root
-      - ./uploads/syncthing:/var/syncthing/config
-    environment:
-      - PUID=1000
-      - PGID=1000
-    depends_on:
-      setup:
-        condition: service_healthy
-    networks:
-      - lemp_network
+      - tribe_network
 
 # Networks
 networks:
-  lemp_network:
-    driver: bridge
+  # External network to connect to tribe-server services
+  tribe_network:
+    external: true
+    name: tribe_network
