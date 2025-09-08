@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Setup script to download phpMyAdmin and Junction
 set -e
 
 echo "🚀 Setting up development environment..."
@@ -8,7 +7,7 @@ echo "🚀 Setting up development environment..."
 # Check if tribe-server is running
 echo "🔍 Checking if tribe-server is running..."
 if ! docker network ls | grep -q "tribe_network"; then
-    echo "❌ tribe_network not found!"
+    echo "⚠️ tribe_network not found!"
     echo ""
     echo "Please ensure tribe-server is running first:"
     echo "  1. Clone or create the tribe-server project"
@@ -31,7 +30,7 @@ echo "🔍 Testing MySQL connection..."
 
 # First check if container exists and is running
 if ! docker ps --format '{{.Names}}' | grep -q "^${DB_HOST}$"; then
-    echo "❌ ${DB_HOST} container is not running"
+    echo "⚠️ ${DB_HOST} container is not running"
     echo "   Please start tribe-server first: docker compose up -d"
     exit 1
 fi
@@ -44,7 +43,7 @@ until docker exec ${DB_HOST} mysqladmin ping -u root -p"${MYSQL_ROOT_PASSWORD}" 
     sleep 2
     count=$((count + 2))
     if [ $count -ge $timeout ]; then
-        echo "❌ MySQL did not become ready within ${timeout} seconds"
+        echo "⚠️ MySQL did not become ready within ${timeout} seconds"
         docker logs ${DB_HOST} | tail -10
         exit 1
     fi
@@ -65,7 +64,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
     if docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
         echo "✅ Database ${DB_NAME} created successfully!"
     else
-        echo "❌ Failed to create database ${DB_NAME}"
+        echo "⚠️ Failed to create database ${DB_NAME}"
         exit 1
     fi
     
@@ -74,7 +73,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
     if docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';"; then
         echo "✅ User ${DB_USER} created successfully!"
     else
-        echo "❌ Failed to create user ${DB_USER}"
+        echo "⚠️ Failed to create user ${DB_USER}"
         exit 1
     fi
     
@@ -91,7 +90,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
         if docker exec -i ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" "$DB_NAME" < /config/mysql/init/install.sql; then
             echo "✅ Database schema imported successfully!"
         else
-            echo "❌ Failed to import database schema"
+            echo "⚠️ Failed to import database schema"
             exit 1
         fi
     else
@@ -108,6 +107,9 @@ mkdir -p applications
 mkdir -p uploads
 mkdir -p uploads/sites
 mkdir -p uploads/backups
+mkdir -p config/syncthing
+
+echo "📁 Created necessary directories"
 
 # Create uploads/sites/dist directory if it doesn't exist
 if [ ! -d "uploads/sites/dist" ]; then
@@ -139,19 +141,6 @@ EOF
 else
     echo "ℹ️ uploads/sites/dist-php directory already exists, skipping creation"
 fi
-
-# Download phpMyAdmin
-echo "📦 Downloading phpMyAdmin..."
-if [ -d "applications/tribe/phpmyadmin" ]; then
-    echo "🗑️ Removing existing phpmyadmin directory..."
-    rm -rf applications/tribe/phpmyadmin
-fi
-    
-curl -L https://files.phpmyadmin.net/phpMyAdmin/5.2.2/phpMyAdmin-5.2.2-all-languages.tar.gz -o pma.tar.gz
-mkdir -p applications/tribe/phpmyadmin
-tar -xzf pma.tar.gz -C applications/tribe/phpmyadmin --strip-components=1
-rm pma.tar.gz
-echo "✅ phpMyAdmin downloaded successfully!"
 
 # Download Junction
 echo "📦 Downloading Junction..."
