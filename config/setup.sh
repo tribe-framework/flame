@@ -4,22 +4,6 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
-# Check if .env exists, if not copy from .env.sample
-if [ ! -f .env ]; then
-    if [ -f .env.sample ]; then
-        echo "📋 .env file not found, copying from .env.sample..."
-        cp .env.sample .env
-        echo "✅ .env file created from .env.sample!"
-        echo "⚠️  Please review and update .env file with your specific configuration"
-    else
-        echo "❌ Neither .env nor .env.sample found!"
-        echo "   Please create a .env file with the required configuration"
-        exit 1
-    fi
-else
-    echo "✅ .env file found!"
-fi
-
 # Check if tribe-server is running
 echo "🔍 Checking if tribe-server is running..."
 if ! docker network ls | grep -q "tribe_network"; then

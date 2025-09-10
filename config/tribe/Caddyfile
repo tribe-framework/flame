@@ -2,17 +2,17 @@
 
 {
     # Global options
-    email {$CONTACT_EMAIL:admin@yourcompany.com}  # Replace with your email for Let's Encrypt
+    email {$CONTACT_EMAIL:tech@collective.org}  # Replace with your email for Let's Encrypt
     admin off
     
     # For localhost development, use internal CA
     local_certs
 }
 
-{$TRIBE_BARE_URL:tribe.localhost:4480} {
+{$TRIBE_BARE_URL:tribe.localhost} {
     # Enable HTTPS with automatic certificate management
     tls internal  # Use for localhost development
-    # tls {$CONTACT_EMAIL:admin@yourcompany.com}  # Use this for production with real domain
+    # tls {$CONTACT_EMAIL:tech@collective.org}  # Use this for production with real domain
     
     root * /var/www/html
     

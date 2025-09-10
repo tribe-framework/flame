@@ -2,17 +2,17 @@
 
 {
     # Global options
-    email {$CONTACT_EMAIL:admin@yourcompany.com}  # Replace with your email for Let's Encrypt
+    email {$CONTACT_EMAIL:tech@collective.org}  # Replace with your email for Let's Encrypt
     admin off
     
     # For localhost development, use internal CA
     local_certs
 }
 
-{$JUNCTION_BARE_URL:junction.localhost:4488} {
+{$JUNCTION_BARE_URL:junction.localhost} {
     # Enable HTTPS with automatic certificate management
     tls internal  # Use for localhost development
-    # tls {$CONTACT_EMAIL:admin@yourcompany.com}  # Use this for production with real domain
+    # tls {$CONTACT_EMAIL:tech@collective.org}  # Use this for production with real domain
     
     root * /var/www/html
     
@@ -83,7 +83,7 @@
     }
 }
 
-# Redirect HTTP to HTTPS
-:80 {
-    redir https://{host}:4488{uri} permanent
+# HTTP redirect for junction.localhost specifically
+http://{$JUNCTION_BARE_URL:junction.localhost} {
+    redir https://{$JUNCTION_BARE_URL:junction.localhost}:4488{uri} permanent
 }
