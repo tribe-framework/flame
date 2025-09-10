@@ -4,6 +4,22 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
+# Check if .env exists, if not copy from .env.sample
+if [ ! -f .env ]; then
+    if [ -f .env.sample ]; then
+        echo "📋 .env file not found, copying from .env.sample..."
+        cp .env.sample .env
+        echo "✅ .env file created from .env.sample!"
+        echo "⚠️  Please review and update .env file with your specific configuration"
+    else
+        echo "❌ Neither .env nor .env.sample found!"
+        echo "   Please create a .env file with the required configuration"
+        exit 1
+    fi
+else
+    echo "✅ .env file found!"
+fi
+
 # Check if tribe-server is running
 echo "🔍 Checking if tribe-server is running..."
 if ! docker network ls | grep -q "tribe_network"; then
@@ -78,7 +94,7 @@ if [ "$DB_EXISTS" -eq 0 ]; then
     fi
     
     # Grant privileges
-    echo "🔐 Granting privileges to ${DB_USER}..."
+    echo "🔑 Granting privileges to ${DB_USER}..."
     docker exec ${DB_HOST} mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'%'; FLUSH PRIVILEGES;"
     echo "✅ Privileges granted to ${DB_USER}!"
     
