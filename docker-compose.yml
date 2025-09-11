@@ -93,19 +93,19 @@ services:
       - tribe_network
 
   # PHP 8 with FPM for Dist PHP
-  php_dist_tribe:
+  php_dist:
     build:
-      context: ./config/dist-tribe-php
+      context: ./config/dist-php
       dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME}_php_dist_tribe
+    container_name: ${PROJECT_NAME}_php_dist
     restart: unless-stopped
     volumes:
       - ./uploads/sites/dist-php:/var/www/html
       - ./uploads:/var/www/html/uploads
       - ./.env:/var/www/html/.env
       - ./logs:/var/log
-      - ./config/dist-tribe-php/php.ini:/usr/local/etc/php/php.ini
-      - ./config/dist-tribe-php/config.php:/var/www/html/config/config.php
+      - ./config/dist-php/php.ini:/usr/local/etc/php/php.ini
+      - ./config/dist-php/config.php:/var/www/html/config/config.php
     command: >
       sh -c "if [ -f composer.json ]; then composer install --no-interaction --optimize-autoloader; fi &&
            php-fpm"
@@ -171,9 +171,9 @@ services:
       - tribe_network
 
   # Caddy Web Server (Tribe) with SSL
-  caddy_dist_tribe:
+  caddy_php_dist:
     image: caddy:2-alpine
-    container_name: ${PROJECT_NAME}_caddy_dist_tribe
+    container_name: ${PROJECT_NAME}_caddy_php_dist
     restart: unless-stopped
     ports:
       - "${DIST_PHP_PORT:-4485}:443"
@@ -182,31 +182,31 @@ services:
       - ./uploads/sites/dist-php:/var/www/html
       - ./uploads:/var/www/html/uploads
       - ./.env:/var/www/html/.env
-      - ./config/dist-tribe-php/config.php:/var/www/html/config/config.php
-      - ./config/dist-tribe-php/Caddyfile:/etc/caddy/Caddyfile
+      - ./config/dist-php/config.php:/var/www/html/config/config.php
+      - ./config/dist-php/Caddyfile:/etc/caddy/Caddyfile
       - ./logs:/var/log/caddy
-      - dist_tribe_caddy_data:/data
-      - dist_tribe_caddy_config:/config
+      - dist_php_caddy_data:/data
+      - dist_php_caddy_config:/config
     environment:
       - DIST_PHP_BARE_URL=${DIST_PHP_BARE_URL}
     depends_on:
       setup:
         condition: service_healthy
-      php_dist_tribe:
+      php_dist:
         condition: service_started
     networks:
       - tribe_network
 
   # Caddy Static Site Server - Single site from uploads/sites/dist
-  dist_static:
+  caddy_dist:
     image: caddy:alpine
-    container_name: ${PROJECT_NAME}_dist_static
+    container_name: ${PROJECT_NAME}_caddy_dist
     restart: unless-stopped
     ports:
       - "${DIST_PORT:-4484}:4484"
     volumes:
       - ./uploads/sites/dist:/srv
-      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./config/dist/Caddyfile:/etc/caddy/Caddyfile
       - ./logs:/var/log/caddy
     depends_on:
       setup:
@@ -290,5 +290,5 @@ volumes:
   junction_caddy_config:
   tribe_caddy_data:
   tribe_caddy_config:
-  dist_tribe_caddy_data:
-  dist_tribe_caddy_config:
+  dist_php_caddy_data:
+  dist_php_caddy_config:

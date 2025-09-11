@@ -27,7 +27,7 @@
     }
 
     # PHP-FPM configuration
-    php_fastcgi php_dist_tribe:9000 {
+    php_fastcgi php_dist:9000 {
         trusted_proxies private_ranges
     }
 
