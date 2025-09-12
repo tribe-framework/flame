@@ -1,6 +1,6 @@
 #!/bin/bash
 
-URL="https://tribe.localhost:4480"
+URL="https://tribe.localhost:12000"
 
 # Wait for the URL to respond
 while ! curl -k -s "$URL" > /dev/null 2>&1; do

@@ -1,22 +1,95 @@
-# Create this file: ./config/dist-tribe-php/Caddyfile
+# ./config/dist-php/Caddyfile
 
 {
     # Global options
-    email {$CONTACT_EMAIL:tech@collective.org}  # Replace with your email for Let's Encrypt
+    email {$CONTACT_EMAIL:tech@collective.org}
     admin off
     
     # For localhost development, use internal CA
     local_certs
+    
+    # Allow HTTP
+    auto_https off
 }
 
-{$DIST_BARE_URL:dist-php.localhost} {
-    # Enable HTTPS with automatic certificate management
+# HTTP configuration
+http://{$DIST_PHP_BARE_URL:dist-php.localhost}:80 {
+    root * /var/www/html
+    
+    # Security headers (excluding HSTS for HTTP)
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer-when-downgrade"
+        Content-Security-Policy "default-src * data: 'unsafe-eval' 'unsafe-inline'"
+    }
+
+    # PHP-FPM configuration
+    php_fastcgi php_dist:9000 {
+        trusted_proxies private_ranges
+    }
+
+    # Block access to hidden files (except .well-known)
+    @hidden {
+        path */.*
+        not path */.well-known/*
+    }
+    respond @hidden 403
+
+    # Block access to /uploads/mysql/* paths
+    @mysql_uploads {
+        path /uploads/mysql/*
+    }
+    respond @mysql_uploads 403
+
+    # Handle uploads directory
+    @uploads {
+        path /uploads/*
+    }
+    route @uploads {
+        try_files {path} /uploads.php{query}
+    }
+
+    # Static file caching
+    @static {
+        file
+        path *.css *.gif *.ico *.webp *.jpeg *.jpg *.js *.png *.woff *.woff2 *.ttf *.eot
+    }
+    header @static {
+        Cache-Control "public, max-age=31536000, immutable"
+        Vary "Accept-Encoding"
+    }
+
+    # Default file server and PHP handling
+    file_server
+    
+    # Enable compression
+    encode {
+        gzip 6
+        minimum_length 1000
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/dist_php_access.log {
+            roll_size 100MiB
+            roll_keep 5
+            roll_keep_for 24h
+        }
+        format json
+        level INFO
+    }
+}
+
+# HTTPS configuration
+https://{$DIST_PHP_BARE_URL:dist-php.localhost}:443 {
     tls internal  # Use for localhost development
     # tls {$CONTACT_EMAIL:tech@collective.org}  # Use this for production with real domain
     
     root * /var/www/html
     
-    # Security headers
+    # Security headers (including HSTS for HTTPS)
     header {
         X-Frame-Options "SAMEORIGIN"
         X-XSS-Protection "1; mode=block"
@@ -73,7 +146,7 @@
 
     # Logging
     log {
-        output file /var/log/caddy/dist_tribe_access.log {
+        output file /var/log/caddy/dist_php_access_https.log {
             roll_size 100MiB
             roll_keep 5
             roll_keep_for 24h
@@ -81,9 +154,4 @@
         format json
         level INFO
     }
-}
-
-# Redirect HTTP to HTTPS
-:80 {
-    redir https://{host}:4485{uri} permanent
 }

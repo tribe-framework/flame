@@ -26,7 +26,7 @@ services:
     container_name: ${PROJECT_NAME}_syncthing
     restart: unless-stopped
     ports:
-      - "${SYNCTHING_PORT:-4483}:8384"
+      - "${SYNCTHING_PORT:-12008}:8384"
       - "22000:22000/tcp"
       - "22000:22000/udp"
       - "21027:21027/udp"
@@ -121,8 +121,8 @@ services:
     container_name: ${PROJECT_NAME}_caddy_tribe
     restart: unless-stopped
     ports:
-      - "${TRIBE_PORT:-4480}:443"
-      - "8480:80"  # HTTP port for redirects (different from junction)
+      - "${TRIBE_PORT:-12000}:80"
+      - "${TRIBE_PORT_SSL:-12001}:443"
     volumes:
       - ./applications/tribe:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -149,8 +149,8 @@ services:
     container_name: ${PROJECT_NAME}_caddy_junction
     restart: unless-stopped
     ports:
-      - "${JUNCTION_PORT:-4488}:443"
-      - "8488:80"  # HTTP port for redirects (different from tribe)
+      - "${JUNCTION_PORT:-12002}:80"
+      - "${JUNCTION_PORT_SSL:-12003}:443"
     volumes:
       - ./applications/junction/dist:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -170,14 +170,14 @@ services:
     networks:
       - tribe_network
 
-  # Caddy Web Server (Tribe) with SSL
+  # Caddy Web Server (Dist PHP) with SSL
   caddy_php_dist:
     image: caddy:2-alpine
     container_name: ${PROJECT_NAME}_caddy_php_dist
     restart: unless-stopped
     ports:
-      - "${DIST_PHP_PORT:-4485}:443"
-      - "8485:80"  # HTTP port for redirects (different from junction)
+      - "${DIST_PHP_PORT:-12006}:80"
+      - "${DIST_PHP_PORT_SSL:-12007}:443"
     volumes:
       - ./uploads/sites/dist-php:/var/www/html
       - ./uploads:/var/www/html/uploads
@@ -203,7 +203,8 @@ services:
     container_name: ${PROJECT_NAME}_caddy_dist
     restart: unless-stopped
     ports:
-      - "${DIST_PORT:-4484}:4484"
+      - "${DIST_PORT:-12004}:80"
+      - "${DIST_PORT_SSL:-12005}:443"
     volumes:
       - ./uploads/sites/dist:/srv
       - ./config/dist/Caddyfile:/etc/caddy/Caddyfile
