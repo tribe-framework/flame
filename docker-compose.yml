@@ -15,8 +15,8 @@ services:
       test: ["CMD", "test", "-f", "/tmp/setup_complete"]
       interval: 5s
       timeout: 3s
-      retries: 10
-      start_period: 30s
+      retries: 5
+      start_period: 10s
     networks:
       - host
 
@@ -37,3 +37,7 @@ services:
         condition: service_healthy
     networks:
       - host
+      
+networks:
+  host:
+    driver: bridge
