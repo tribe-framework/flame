@@ -1,13 +1,9 @@
-# Tribe Complete Setup Guide
+# Flame
 
-View README.html or visit https://tribe-framework.org
+Flame is the barebones folder structure that Tribe is built on. If you want to build a Tribe-compatible frontend from scratch, Flame is your starting point.
 
----
-
-## About Tribe Framework
-
-Tribe is a web project management framework that allows us to build platforms, products, applications and web interfaces using a modular approach. It provides a coherent language for UX, content, design and code collaborations.
+→ **[tribe-framework.org](https://tribe-framework.org)**
 
 ## License
 
-The GNU General Public License is a free, copyleft license for software and other kinds of works.
+[GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html)
